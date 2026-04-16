@@ -36,7 +36,7 @@ db.exec(`
 app.post("/api/profiles", async (req, res) => {
   const { name } = req.body;
 
-  // ✅ 1. Check if name exists
+  // Check if name exists
   if (!name) {
     return res.status(400).json({
       status: "error",
@@ -44,7 +44,7 @@ app.post("/api/profiles", async (req, res) => {
     });
   }
 
-  // ✅ 2. Check type (PLACE IT HERE)
+  // Check type (PLACE IT HERE)
   if (typeof name !== "string") {
     return res.status(422).json({
       status: "error",
@@ -52,10 +52,10 @@ app.post("/api/profiles", async (req, res) => {
     });
   }
 
-  // ✅ 3. Normalize AFTER validation
+  // Normalize AFTER validation
   const normalizedName = name.toLowerCase();
 
-  // ✅ Check existing
+  // Check existing
   const existing = db
     .prepare("SELECT * FROM profiles WHERE name = ?")
     .get(normalizedName);
@@ -69,7 +69,7 @@ app.post("/api/profiles", async (req, res) => {
   }
 
   try {
-    // ✅ Fetch external APIs
+    // Fetch external APIs
     const [genderRes, ageRes, natRes] = await Promise.all([
       fetch(`https://api.genderize.io?name=${normalizedName}`),
       fetch(`https://api.agify.io?name=${normalizedName}`),
@@ -80,7 +80,7 @@ app.post("/api/profiles", async (req, res) => {
     const ageData = await ageRes.json();
     const natData = await natRes.json();
 
-    // ✅ Validate responses
+    // Validate responses
     if (!genderData.gender || genderData.count === 0) {
       return res.status(502).json({
         status: "error",
@@ -111,13 +111,13 @@ if (!natData.country || natData.country.length === 0) {
   });
 }
 
-    // ✅ Age classification
+    // Age classification
     let age_group = "adult";
     if (ageData.age <= 12) age_group = "child";
     else if (ageData.age <= 19) age_group = "teenager";
     else if (ageData.age >= 60) age_group = "senior";
 
-    // ✅ Get top country
+    // Get top country
     const topCountry = natData.country.reduce((a, b) =>
       a.probability > b.probability ? a : b,
     );
@@ -135,7 +135,7 @@ if (!natData.country || natData.country.length === 0) {
       created_at: new Date().toISOString(),
     };
 
-    // ✅ Insert (FIXED)
+    // Insert (FIXED)
     db.prepare(
       `
       INSERT INTO profiles (
